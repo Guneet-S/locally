@@ -1,6 +1,23 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const SHOPPER_PATHS = [
+  "/dashboard",
+  "/inventory",
+  "/reviews",
+  "/settings",
+  "/setup",
+];
+
+const SHOPPEE_PATHS = [
+  "/home",
+  "/explore",
+  "/wishlist",
+  "/profile",
+  "/store",
+  "/product",
+];
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -31,23 +48,36 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  const isProtected =
-    pathname.startsWith("/home") ||
-    pathname.startsWith("/explore") ||
-    pathname.startsWith("/wishlist") ||
-    pathname.startsWith("/profile") ||
-    pathname.startsWith("/store") ||
-    pathname.startsWith("/product") ||
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/inventory") ||
-    pathname.startsWith("/reviews") ||
-    pathname.startsWith("/settings") ||
-    pathname.startsWith("/setup");
+  const isShopperPath = SHOPPER_PATHS.some((p) => pathname.startsWith(p));
+  const isShopeePath = SHOPPEE_PATHS.some((p) => pathname.startsWith(p));
+  const isProtected = isShopperPath || isShopeePath;
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
-    url.pathname = "/role";
+    url.pathname = "/login";
+    url.searchParams.set("role", isShopperPath ? "shopper" : "shoppee");
     return NextResponse.redirect(url);
+  }
+
+  if (user && isProtected) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile) {
+      if (isShopperPath && profile.role !== "shopper") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/role";
+        return NextResponse.redirect(url);
+      }
+      if (isShopeePath && profile.role !== "shoppee") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/role";
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse;

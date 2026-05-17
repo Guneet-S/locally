@@ -1,4 +1,4 @@
-﻿// Generated from SCHEMA.sql
+// Generated from SCHEMA.sql
 // To regenerate: SUPABASE_ACCESS_TOKEN=<pat> pnpm dlx supabase gen types typescript --project-id lroycqcfnrxuvezapgda --schema public > types/database.ts
 
 export type Json =
@@ -40,6 +40,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       stores: {
         Row: {
@@ -90,6 +91,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       products: {
         Row: {
@@ -131,6 +133,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       wishlists: {
         Row: {
@@ -148,6 +151,7 @@ export type Database = {
           store_id?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       store_views: {
         Row: {
@@ -168,6 +172,7 @@ export type Database = {
           viewer_id?: string | null;
           viewed_at?: string;
         };
+        Relationships: [];
       };
       reviews: {
         Row: {
@@ -194,6 +199,7 @@ export type Database = {
           comment?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
     };
     Views: {
