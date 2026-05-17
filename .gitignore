@@ -40,3 +40,6 @@ Thumbs.db
 
 # stitch reference (local design files — not for version control)
 stitch-reference/
+
+# MCP config (contains API keys — local only)
+.mcp.json
