@@ -174,7 +174,20 @@ locally/
 
 ---
 
-## 7. When in doubt
+## 7. Design reference — Stitch MCP
+
+A Stitch MCP server is configured in `.mcp.json` at the project root. Use it to pull design specs directly from the Locally Stitch project.
+
+**Project ID:** `18385702851303483276`
+
+When building any screen:
+1. Use the Stitch MCP to read the design for that screen from the project above
+2. Port the layout faithfully using shadcn/ui primitives and Tailwind tokens from `DESIGN_SYSTEM.md`
+3. Never use raw hex codes — always use the design tokens
+
+---
+
+## 8. When in doubt
 
 Ask. Don't guess on:
 - Schema changes
