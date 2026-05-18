@@ -52,7 +52,7 @@ export default async function StorePage({
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`;
 
   return (
-    <div className="flex min-h-screen flex-col pb-20">
+    <div className="flex min-h-screen flex-col bg-shoppee-bg pb-20">
       {/* Banner */}
       <div className="relative">
         {store.banner_url ? (
@@ -63,7 +63,7 @@ export default async function StorePage({
             className="h-52 w-full object-cover"
           />
         ) : (
-          <div className="h-52 w-full bg-shoppee-light" />
+          <div className="h-52 w-full bg-shoppee-muted" />
         )}
         <div className="absolute right-3 top-3">
           <WishlistButton storeId={store.id} initialWishlisted={wishlisted} />
@@ -71,27 +71,39 @@ export default async function StorePage({
       </div>
 
       <div className="px-4 pt-4">
-        <h1 className="text-h1 text-text-primary">{store.name}</h1>
+        <h1 className="font-serif text-h1 text-shoppee-textPrimary">
+          {store.name}
+        </h1>
 
         <div className="mt-2 flex flex-col gap-1.5">
           <div className="flex items-start gap-1.5">
             <MapPin
               size={14}
               strokeWidth={1.5}
-              className="mt-0.5 shrink-0 text-text-tertiary"
+              className="mt-0.5 shrink-0 text-shoppee-textSecondary"
             />
-            <p className="text-meta text-text-secondary">{store.address}</p>
+            <p className="text-meta text-shoppee-textSecondary">
+              {store.address}
+            </p>
           </div>
           {(store.opening_time || store.closing_time) && (
             <div className="flex items-center gap-1.5">
-              <Clock size={14} strokeWidth={1.5} className="text-text-tertiary" />
-              <p className="text-meta text-text-secondary">
+              <Clock
+                size={14}
+                strokeWidth={1.5}
+                className="text-shoppee-textSecondary"
+              />
+              <p className="text-meta text-shoppee-textSecondary">
                 {store.opening_time ?? "—"} – {store.closing_time ?? "—"}
               </p>
             </div>
           )}
           <div className="flex items-center gap-1.5">
-            <Phone size={14} strokeWidth={1.5} className="text-text-tertiary" />
+            <Phone
+              size={14}
+              strokeWidth={1.5}
+              className="text-shoppee-textSecondary"
+            />
             <a
               href={`tel:${store.contact_phone}`}
               className="text-meta text-shoppee-primary"
@@ -107,7 +119,7 @@ export default async function StorePage({
             {(store.categories as string[]).map((cat) => (
               <span
                 key={cat}
-                className="rounded-full bg-shoppee-light px-2.5 py-1 text-meta text-shoppee-dark"
+                className="rounded-full bg-shoppee-muted px-2.5 py-1 text-meta text-shoppee-primary"
               >
                 {cat}
               </span>
@@ -119,7 +131,7 @@ export default async function StorePage({
         <div className="mt-4 flex gap-3">
           <a
             href={`tel:${store.contact_phone}`}
-            className="flex-1 rounded-[10px] bg-shoppee-primary py-3 text-center text-button text-white"
+            className="flex-1 rounded-lg bg-shoppee-primary py-3 text-center text-button text-white"
           >
             Call store
           </a>
@@ -127,7 +139,7 @@ export default async function StorePage({
             href={mapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 rounded-[10px] border border-shoppee-primary py-3 text-center text-button text-shoppee-primary"
+            className="flex-1 rounded-lg border border-shoppee-primary py-3 text-center text-button text-shoppee-primary"
           >
             Get directions
           </a>
@@ -136,9 +148,11 @@ export default async function StorePage({
 
       {/* Products */}
       <div className="mt-6 px-4">
-        <h2 className="text-h2 text-text-primary">Products</h2>
+        <h2 className="font-serif text-h2 text-shoppee-textPrimary">
+          Products
+        </h2>
         {!products || products.length === 0 ? (
-          <p className="mt-3 text-body text-text-tertiary">
+          <p className="mt-3 text-body text-shoppee-textSecondary">
             No products listed yet.
           </p>
         ) : (
@@ -149,7 +163,7 @@ export default async function StorePage({
                 href={`/product/${product.id}`}
                 className="block"
               >
-                <div className="overflow-hidden rounded-[10px] border-[0.5px] border-border-subtle bg-surface">
+                <div className="overflow-hidden rounded-lg border border-shoppee-border bg-white shadow-sm">
                   {product.photo_urls[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -158,10 +172,10 @@ export default async function StorePage({
                       className="aspect-square w-full object-cover"
                     />
                   ) : (
-                    <div className="aspect-square w-full bg-surface-dim" />
+                    <div className="aspect-square w-full bg-shoppee-muted" />
                   )}
                   <div className="p-2">
-                    <p className="line-clamp-1 text-h3 text-text-primary">
+                    <p className="line-clamp-1 font-serif text-h3 text-shoppee-textPrimary">
                       {product.name}
                     </p>
                     <p className="mt-0.5 text-meta text-shoppee-primary">

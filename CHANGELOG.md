@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.6] — 2026-05-18
+
+### Visual Refresh
+
+- **Store pages redesigned** — Store detail pages now use the warm ivory background with a Playfair Display store name, warm category pills, updated icon colours, and white product cards with subtle shadows. Call and directions buttons use the new rounded style.
+- **Product pages redesigned** — Product detail pages now use the warm palette throughout: Playfair Display product name, terracotta price and category badge, warm size chip borders, and a white "Sold by" store card with a terracotta Visit Store button.
+
+---
+
 ## [1.0.5] — 2026-05-18
 
 ### Visual Refresh
