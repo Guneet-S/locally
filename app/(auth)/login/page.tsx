@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation";
+import { Playfair_Display, DM_Sans } from "next/font/google";
 import LoginForm from "@/components/auth/LoginForm";
+
+const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" });
 
 export default function LoginPage({
   searchParams,
@@ -13,5 +17,9 @@ export default function LoginPage({
 
   if (!role) redirect("/role");
 
-  return <LoginForm role={role} />;
+  return (
+    <div className={`${playfair.variable} ${dmSans.variable}`}>
+      <LoginForm role={role} />
+    </div>
+  );
 }

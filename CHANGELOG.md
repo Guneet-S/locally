@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.8] — 2026-05-18
+
+### Enhancements
+
+- **Profile now shows your activity stats** — A new stats row on your Profile page displays how many stores you have saved to your Wishlist and how many unique stores you have discovered so far.
+- **Profile shows recently visited stores** — A new "My Activity" section lists the last 3 stores you viewed, with their banner image and category, so you can quickly revisit recent finds.
+- **Profile "More" section** — An "About Locally" entry has been added at the bottom of the Profile page for future app information and support links.
+- **Login page redesigned for Shoppee** — The customer login screen now matches the warm ivory and terracotta palette: a "Locally" wordmark at the top, Playfair Display headings, and warm-styled input fields and button.
+
+---
+
 ## [1.0.7] — 2026-05-18
 
 ### Visual Refresh
