@@ -64,9 +64,10 @@ export default function SetupForm() {
         setIsGettingLocation(false);
       },
       () => {
-        setLocError("Location denied. Enable location access and try again.");
+        setLocError("Could not get location. Allow access or try again.");
         setIsGettingLocation(false);
-      }
+      },
+      { timeout: 10000, maximumAge: 60000, enableHighAccuracy: false }
     );
   };
 
