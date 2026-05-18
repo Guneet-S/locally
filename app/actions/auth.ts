@@ -29,26 +29,19 @@ export async function signupAction(data: {
 }): Promise<{ error: string } | undefined> {
   const supabase = createClient();
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.signUp({
+  const { error: authError } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
+    options: {
+      data: {
+        role: data.role,
+        full_name: data.full_name,
+        phone: data.phone ?? null,
+      },
+    },
   });
 
   if (authError) return { error: authError.message };
-  if (!user) return { error: "Signup failed — try again" };
-
-  const { error: profileError } = await supabase.from("profiles").insert({
-    id: user.id,
-    role: data.role,
-    full_name: data.full_name,
-    email: data.email,
-    phone: data.phone ?? null,
-  });
-
-  if (profileError) return { error: profileError.message };
 
   redirect(data.role === "shoppee" ? "/location" : "/setup");
 }
