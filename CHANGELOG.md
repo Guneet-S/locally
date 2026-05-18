@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.3] — 2026-05-18
+
+### Bug Fixes
+
+- **Logout button is now fully visible** — The Log out button on the Profile page was clipped behind the bottom navigation bar. Increased the bottom padding so the button is always reachable.
+- **Profile shows "Member since" date** — The Profile card now displays the month and year your account was created (e.g. "Member since May 2026") so you can see how long you've been with Locally.
+
+---
+
 ## [1.0.2] — 2026-05-18
 
 ### Changes
