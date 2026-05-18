@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.9] — 2026-05-18
+
+### Visual Refresh
+
+- **Login page is now role-aware** — Customers (Shoppee) see the warm ivory and terracotta login screen as before. Store owners (Shopper) now see a clean white and purple login screen with a "Manage your store, grow your business" tagline and a shopkeeper-specific subtitle.
+- **Shopper login now shows invite prompt** — Instead of a "Sign up" link, the Shopper login footer now shows "Request invite" — tapping it displays a message explaining that store accounts are by invitation only, with a contact email.
+- **Signup page redesigned for customers** — The Shoppee signup screen now uses the full warm ivory and terracotta design: Locally wordmark, Playfair Display headings, warm input fields, and a terracotta "Create account" button.
+
+---
+
 ## [1.0.8] — 2026-05-18
 
 ### Enhancements
