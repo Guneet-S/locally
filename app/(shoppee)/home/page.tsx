@@ -71,10 +71,14 @@ export default async function HomePage({
   const wishlistSet = new Set(wishlistRows?.map((w) => w.store_id) ?? []);
 
   return (
-    <div className="flex min-h-screen flex-col pb-20">
+    <div className="flex min-h-screen flex-col bg-shoppee-bg pb-20">
       <div className="px-4 pt-12">
-        <h1 className="text-h1 text-text-primary">Nearby stores</h1>
-        <p className="mt-0.5 text-meta text-text-secondary">{profile.full_name}</p>
+        <h1 className="font-serif text-h1 text-shoppee-textPrimary">
+          Shops near you
+        </h1>
+        <p className="mt-0.5 text-meta text-shoppee-textSecondary">
+          {profile.full_name}
+        </p>
         <div className="mt-4">
           <HomeSearch />
         </div>
@@ -87,10 +91,10 @@ export default async function HomePage({
       >
         <Link
           href="/home"
-          className={`shrink-0 rounded-full border-[0.5px] px-3 py-1 text-meta ${
+          className={`shrink-0 rounded-full border px-3 py-1 text-meta ${
             !categoryFilter
               ? "border-shoppee-primary bg-shoppee-primary text-white"
-              : "border-border-subtle text-text-secondary"
+              : "border-shoppee-border bg-shoppee-muted text-shoppee-textSecondary"
           }`}
         >
           All
@@ -99,10 +103,10 @@ export default async function HomePage({
           <Link
             key={cat}
             href={`/home?category=${cat}`}
-            className={`shrink-0 rounded-full border-[0.5px] px-3 py-1 text-meta ${
+            className={`shrink-0 rounded-full border px-3 py-1 text-meta ${
               categoryFilter === cat
                 ? "border-shoppee-primary bg-shoppee-primary text-white"
-                : "border-border-subtle text-text-secondary"
+                : "border-shoppee-border bg-shoppee-muted text-shoppee-textSecondary"
             }`}
           >
             {cat}
@@ -114,16 +118,18 @@ export default async function HomePage({
       <div className="mt-4 flex flex-col gap-3 px-4">
         {!stores || stores.length === 0 ? (
           <div className="mt-16 flex flex-col items-center text-center">
-            <MapPin size={40} strokeWidth={1.5} className="text-surface-dim" />
-            <p className="mt-3 text-h3 text-text-primary">No stores found nearby</p>
-            <p className="mt-1 text-body text-text-secondary">
+            <MapPin size={40} strokeWidth={1.5} className="text-shoppee-muted" />
+            <p className="mt-3 text-h3 font-serif text-shoppee-textPrimary">
+              No stores found nearby
+            </p>
+            <p className="mt-1 text-body text-shoppee-textSecondary">
               Try a different category or expand your area.
             </p>
           </div>
         ) : (
           stores.map((store) => (
             <Link key={store.id} href={`/store/${store.id}`} className="block">
-              <div className="relative overflow-hidden rounded-[10px] border-[0.5px] border-border-subtle bg-surface">
+              <div className="relative overflow-hidden rounded-lg border border-shoppee-border bg-white shadow-sm">
                 {store.banner_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -132,7 +138,7 @@ export default async function HomePage({
                     className="h-36 w-full object-cover"
                   />
                 ) : (
-                  <div className="h-36 w-full bg-shoppee-light" />
+                  <div className="h-36 w-full bg-shoppee-muted" />
                 )}
                 <div className="absolute right-2 top-2">
                   <WishlistButton
@@ -142,12 +148,14 @@ export default async function HomePage({
                 </div>
                 <div className="p-3">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-h3 text-text-primary">{store.name}</p>
+                    <p className="font-serif text-h3 text-shoppee-textPrimary">
+                      {store.name}
+                    </p>
                     <span
                       className={`shrink-0 rounded-full px-2 py-0.5 text-meta ${
                         store.is_open_now
-                          ? "bg-shoppee-light text-shoppee-dark"
-                          : "bg-surface-dim text-text-tertiary"
+                          ? "bg-shoppee-muted text-shoppee-primary"
+                          : "bg-shoppee-muted text-shoppee-textSecondary"
                       }`}
                     >
                       {store.is_open_now ? "Open" : "Closed"}
@@ -157,9 +165,9 @@ export default async function HomePage({
                     <MapPin
                       size={10}
                       strokeWidth={1.5}
-                      className="text-text-tertiary"
+                      className="text-shoppee-textSecondary"
                     />
-                    <p className="line-clamp-1 text-meta text-text-secondary">
+                    <p className="line-clamp-1 text-meta text-shoppee-textSecondary">
                       {store.address}
                     </p>
                   </div>
@@ -171,13 +179,13 @@ export default async function HomePage({
                         fill="currentColor"
                         className="text-shoppee-primary"
                       />
-                      <span className="text-meta text-text-secondary">
+                      <span className="text-meta text-shoppee-textSecondary">
                         {store.avg_rating > 0
                           ? store.avg_rating.toFixed(1)
                           : "New"}
                       </span>
                     </div>
-                    <span className="text-meta text-text-tertiary">
+                    <span className="text-meta text-shoppee-textSecondary">
                       {store.distance_m < 1000
                         ? `${Math.round(store.distance_m)}m`
                         : `${(store.distance_m / 1000).toFixed(1)}km`}

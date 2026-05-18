@@ -67,26 +67,26 @@ export default async function ExplorePage({
   })();
 
   return (
-    <div className="px-4 pb-20 pt-12">
-      <h1 className="text-h1 text-text-primary">Explore</h1>
+    <div className="min-h-screen bg-shoppee-bg px-4 pb-20 pt-12">
+      <h1 className="font-serif text-h1 text-shoppee-textPrimary">Explore</h1>
       <div className="mt-4">
         <ExploreSearch initialQ={q} />
       </div>
 
       {q && stores.length === 0 && (
         <div className="mt-16 flex flex-col items-center text-center">
-          <Search size={40} strokeWidth={1.5} className="text-surface-dim" />
-          <p className="mt-3 text-h3 text-text-primary">
+          <Search size={40} strokeWidth={1.5} className="text-shoppee-muted" />
+          <p className="mt-3 font-serif text-h3 text-shoppee-textPrimary">
             No results for &ldquo;{q}&rdquo;
           </p>
-          <p className="mt-1 text-body text-text-secondary">
+          <p className="mt-1 text-body text-shoppee-textSecondary">
             Try a different search term.
           </p>
         </div>
       )}
 
       {!q && (
-        <p className="mt-8 text-center text-body text-text-secondary">
+        <p className="mt-8 text-center text-body text-shoppee-textSecondary">
           Search for stores or styles above.
         </p>
       )}
@@ -95,26 +95,28 @@ export default async function ExplorePage({
         <div className="mt-5 flex flex-col gap-3">
           {stores.map((store) => (
             <Link key={store.id} href={`/store/${store.id}`} className="block">
-              <div className="flex gap-3 rounded-[10px] border-[0.5px] border-border-subtle bg-surface p-3">
+              <div className="flex gap-3 rounded-lg border border-shoppee-border bg-white p-3 shadow-sm">
                 {store.banner_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={store.banner_url}
                     alt={store.name}
-                    className="h-16 w-16 shrink-0 rounded-[8px] object-cover"
+                    className="h-16 w-16 shrink-0 rounded-lg object-cover"
                   />
                 ) : (
-                  <div className="h-16 w-16 shrink-0 rounded-[8px] bg-shoppee-light" />
+                  <div className="h-16 w-16 shrink-0 rounded-lg bg-shoppee-muted" />
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="text-h3 text-text-primary">{store.name}</p>
+                  <p className="font-serif text-h3 text-shoppee-textPrimary">
+                    {store.name}
+                  </p>
                   <div className="mt-0.5 flex items-center gap-1">
                     <MapPin
                       size={10}
                       strokeWidth={1.5}
-                      className="shrink-0 text-text-tertiary"
+                      className="shrink-0 text-shoppee-textSecondary"
                     />
-                    <p className="line-clamp-1 text-meta text-text-secondary">
+                    <p className="line-clamp-1 text-meta text-shoppee-textSecondary">
                       {store.address}
                     </p>
                   </div>
@@ -123,7 +125,7 @@ export default async function ExplorePage({
                       {store.categories.slice(0, 3).map((cat) => (
                         <span
                           key={cat}
-                          className="rounded-full bg-shoppee-light px-2 py-0.5 text-meta text-shoppee-dark"
+                          className="rounded-full bg-shoppee-muted px-2 py-0.5 text-meta text-shoppee-primary"
                         >
                           {cat}
                         </span>

@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.5] — 2026-05-18
+
+### Visual Refresh
+
+- **Home feed redesigned** — The nearby stores screen now uses the warm ivory background with white store cards, a Playfair Display heading ("Shops near you"), and terracotta accents throughout. Category filter chips use a muted warm style when inactive and solid terracotta when selected. Open/closed badges, ratings, and distance labels all use the new warm palette.
+- **Explore page redesigned** — The Explore screen now matches the warm visual language of the rest of the app: ivory background, white store cards with subtle shadows, Playfair Display headings, and terracotta category tags on each result card.
+
+---
+
 ## [1.0.4] — 2026-05-18
 
 ### Visual Refresh
