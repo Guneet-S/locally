@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.7] — 2026-05-18
+
+### Visual Refresh
+
+- **Wishlist page redesigned** — The Wishlist screen now matches the warm terracotta and ivory design throughout: white store cards with subtle shadows, Playfair Display store names, warm category tags, and a terracotta "Explore shops" call-to-action on the empty state.
+- **Profile page redesigned** — The Profile screen now shows an avatar circle with your initial in terracotta, your name in Playfair Display, and warm muted text for email and membership date. The Log out button is now an outlined terracotta style to match the rest of the Shoppee design.
+- **Shoppee warm palette complete** — All six customer-facing screens (Home, Explore, Store, Product, Wishlist, Profile) now use the warm ivory and terracotta design system.
+
+---
+
 ## [1.0.6] — 2026-05-18
 
 ### Visual Refresh
