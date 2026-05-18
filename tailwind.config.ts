@@ -15,9 +15,14 @@ const config: Config = {
           dark: "#3C3489",
         },
         shoppee: {
-          primary: "#0F6E56",
-          light: "#E1F5EE",
-          dark: "#085041",
+          bg: "#FAF6F0",
+          primary: "#C4581A",
+          primaryHover: "#A34515",
+          surface: "#FFFFFF",
+          textPrimary: "#1A1208",
+          textSecondary: "#8B6F5E",
+          border: "#E8DDD4",
+          muted: "#F5EDE4",
         },
         surface: {
           DEFAULT: "#FFFFFF",
@@ -35,6 +40,10 @@ const config: Config = {
         success: "#0F6E56",
         danger: "#BA1A1A",
         warning: "#8A4900",
+      },
+      fontFamily: {
+        serif: ["Playfair Display", "Georgia", "serif"],
+        sans: ["DM Sans", "Inter", "sans-serif"],
       },
       fontSize: {
         h1: ["22px", { lineHeight: "28px", fontWeight: "500" }],

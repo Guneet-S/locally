@@ -4,6 +4,15 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.4] — 2026-05-18
+
+### Visual Refresh
+
+- **New look for the Shoppee experience** — The customer-facing app now uses a warm terracotta and ivory colour palette, replacing the previous teal theme. The bottom navigation bar has been updated to match, with a white background, warm border, and terracotta highlight for the active tab.
+- **New fonts** — The Shoppee app now uses DM Sans for body text and Playfair Display for headings, giving it a warmer, more editorial feel.
+
+---
+
 ## [1.0.3] — 2026-05-18
 
 ### Bug Fixes

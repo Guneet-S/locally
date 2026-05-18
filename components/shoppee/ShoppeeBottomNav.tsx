@@ -15,7 +15,7 @@ export default function ShoppeeBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 flex border-t border-border-subtle bg-surface pb-4">
+    <nav className="fixed bottom-0 left-0 right-0 flex border-t border-shoppee-border bg-shoppee-surface pb-4">
       {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         return (
@@ -23,7 +23,7 @@ export default function ShoppeeBottomNav() {
             key={href}
             href={href}
             className={`flex flex-1 flex-col items-center gap-0.5 pt-3 text-meta ${
-              active ? "text-shoppee-primary" : "text-text-tertiary"
+              active ? "text-shoppee-primary" : "text-shoppee-textSecondary"
             }`}
           >
             <Icon size={20} strokeWidth={1.5} />
