@@ -27,6 +27,9 @@ export async function signupAction(data: {
   password: string;
   role: "shopper" | "shoppee";
 }): Promise<{ error: string } | undefined> {
+  if (data.role === "shopper")
+    return { error: "Shopper accounts are by invitation only." };
+
   const supabase = createClient();
 
   const { error: authError } = await supabase.auth.signUp({

@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.2] — 2026-05-18
+
+### Changes
+
+- **Shopkeeper signup is now invite-only** — The Shopkeeper tile on the role selection screen is no longer clickable. It displays an "Accounts are by invitation only. Contact admin." message. Store owner accounts are created by Locally admins only.
+- **Shopper self-signup blocked at all layers** — Attempting to reach `/signup?role=shopper` now redirects to the role screen. The signup server action also rejects any shopper signup attempt as a backend safeguard.
+- **Customer (Shoppee) signup unchanged** — Customers can still self-register as before.
+
+---
+
 ## [1.0.1] — 2026-05-18
 
 ### Bug Fixes
