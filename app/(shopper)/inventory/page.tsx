@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
 import Link from "next/link";
+import { Package } from "lucide-react";
 import DeleteProductButton from "@/components/shopper/DeleteProductButton";
 
 export default async function InventoryPage() {
@@ -76,12 +77,19 @@ export default async function InventoryPage() {
           ))}
         </div>
       ) : (
-        <p className="mt-6 text-body text-text-tertiary">
-          No products yet.{" "}
-          <Link href="/inventory/new" className="text-shopper-primary">
-            Add your first item.
+        <div className="mt-16 flex flex-col items-center text-center">
+          <Package size={40} strokeWidth={1.5} className="text-surface-dim" />
+          <p className="mt-3 text-h3 text-text-primary">No products yet</p>
+          <p className="mt-1 text-body text-text-secondary">
+            Start building your catalogue.
+          </p>
+          <Link
+            href="/inventory/new"
+            className="mt-6 rounded-[10px] bg-shopper-primary px-6 py-3 text-button text-white"
+          >
+            Add your first item
           </Link>
-        </p>
+        </div>
       )}
     </div>
   );

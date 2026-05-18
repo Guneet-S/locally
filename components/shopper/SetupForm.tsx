@@ -127,6 +127,7 @@ export default function SetupForm() {
             className="flex w-full flex-col items-center justify-center gap-2 rounded-[10px] border-[0.5px] border-border-subtle bg-surface-muted py-8 text-meta text-text-secondary"
           >
             {bannerPreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={bannerPreview}
                 alt="Banner preview"

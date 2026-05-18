@@ -132,12 +132,15 @@ export default async function DashboardPage() {
           ))}
         </div>
       ) : (
-        <p className="mt-4 text-body text-text-tertiary">
-          No products yet.{" "}
-          <Link href="/inventory/new" className="text-shopper-primary">
-            Add your first item.
+        <div className="mt-6 text-center">
+          <p className="text-body text-text-tertiary">No products yet.</p>
+          <Link
+            href="/inventory/new"
+            className="mt-2 inline-block text-meta text-shopper-primary"
+          >
+            Add your first item
           </Link>
-        </p>
+        </div>
       )}
     </div>
   );

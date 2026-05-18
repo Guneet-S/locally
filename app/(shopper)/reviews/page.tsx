@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
 import { formatDistanceToNow } from "date-fns";
-import { Star } from "lucide-react";
+import { Star, MessageSquare } from "lucide-react";
 
 type ReviewRow = {
   id: string;
@@ -88,7 +88,13 @@ export default async function ReviewsPage() {
           ))}
         </div>
       ) : (
-        <p className="mt-6 text-body text-text-tertiary">No reviews yet.</p>
+        <div className="mt-16 flex flex-col items-center text-center">
+          <MessageSquare size={40} strokeWidth={1.5} className="text-surface-dim" />
+          <p className="mt-3 text-h3 text-text-primary">No reviews yet</p>
+          <p className="mt-1 text-body text-text-secondary">
+            Reviews from customers will appear here.
+          </p>
+        </div>
       )}
     </div>
   );

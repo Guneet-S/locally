@@ -113,9 +113,13 @@ export default async function HomePage({
       {/* Store list */}
       <div className="mt-4 flex flex-col gap-3 px-4">
         {!stores || stores.length === 0 ? (
-          <p className="mt-6 text-body text-text-tertiary">
-            No stores found nearby. Try a different category or location.
-          </p>
+          <div className="mt-16 flex flex-col items-center text-center">
+            <MapPin size={40} strokeWidth={1.5} className="text-surface-dim" />
+            <p className="mt-3 text-h3 text-text-primary">No stores found nearby</p>
+            <p className="mt-1 text-body text-text-secondary">
+              Try a different category or expand your area.
+            </p>
+          </div>
         ) : (
           stores.map((store) => (
             <Link key={store.id} href={`/store/${store.id}`} className="block">

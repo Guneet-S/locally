@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import ExploreSearch from "@/components/shoppee/ExploreSearch";
-import { MapPin } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 
 type StoreResult = {
   id: string;
@@ -19,9 +19,9 @@ export default async function ExplorePage({
   const q = searchParams.q?.trim() ?? "";
   const supabase = createClient();
 
-  let stores: StoreResult[] = [];
+  const stores: StoreResult[] = await (async () => {
+    if (!q) return [];
 
-  if (q) {
     const pattern = `%${q}%`;
 
     const [{ data: byName }, { data: matchingProducts }] = await Promise.all([
@@ -56,13 +56,15 @@ export default async function ExplorePage({
 
     // byName first, then product-matched stores not already included
     const seen = new Set<string>();
+    const results: StoreResult[] = [];
     for (const s of [...(byName ?? []), ...byProduct]) {
       if (!seen.has(s.id)) {
         seen.add(s.id);
-        stores.push(s);
+        results.push(s);
       }
     }
-  }
+    return results;
+  })();
 
   return (
     <div className="px-4 pb-20 pt-12">
@@ -72,9 +74,15 @@ export default async function ExplorePage({
       </div>
 
       {q && stores.length === 0 && (
-        <p className="mt-8 text-center text-body text-text-tertiary">
-          No results for &ldquo;{q}&rdquo;
-        </p>
+        <div className="mt-16 flex flex-col items-center text-center">
+          <Search size={40} strokeWidth={1.5} className="text-surface-dim" />
+          <p className="mt-3 text-h3 text-text-primary">
+            No results for &ldquo;{q}&rdquo;
+          </p>
+          <p className="mt-1 text-body text-text-secondary">
+            Try a different search term.
+          </p>
+        </div>
       )}
 
       {!q && (
