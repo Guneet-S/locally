@@ -90,7 +90,7 @@ export default async function InventoryPage({
   }
 
   const { data, count } = await query.range(offset, offset + PAGE_SIZE - 1);
-  let rows: InventoryRow[] = (data as InventoryRow[] | null) ?? [];
+  const rows: InventoryRow[] = (data as InventoryRow[] | null) ?? [];
 
   // Compute total qty per product, apply stock filter
   const withQty = rows.map((r) => ({
