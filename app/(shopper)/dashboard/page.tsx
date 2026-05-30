@@ -31,6 +31,7 @@ export default async function DashboardPage() {
 
   const todayStart = getTodayStartIST();
   const thirtyDaysAgo = getDaysAgoISO(30);
+  const sevenDaysAgo = getDaysAgoISO(7);
 
   // First fetch product IDs for this store (needed for product_views/wishlist counts)
   const { data: productRows } = await supabase
@@ -52,6 +53,9 @@ export default async function DashboardPage() {
     { count: directionEvents },
     { count: whatsappEvents },
     { count: callEvents },
+    { count: directionEvents7d },
+    { count: whatsappEvents7d },
+    { count: callEvents7d },
     { data: variants },
   ] = await Promise.all([
     supabase
@@ -96,6 +100,24 @@ export default async function DashboardPage() {
       .eq("store_id", store.id)
       .eq("event_type", "call")
       .gte("created_at", thirtyDaysAgo),
+    supabase
+      .from("contact_events")
+      .select("*", { count: "exact", head: true })
+      .eq("store_id", store.id)
+      .eq("event_type", "directions")
+      .gte("created_at", sevenDaysAgo),
+    supabase
+      .from("contact_events")
+      .select("*", { count: "exact", head: true })
+      .eq("store_id", store.id)
+      .eq("event_type", "whatsapp")
+      .gte("created_at", sevenDaysAgo),
+    supabase
+      .from("contact_events")
+      .select("*", { count: "exact", head: true })
+      .eq("store_id", store.id)
+      .eq("event_type", "call")
+      .gte("created_at", sevenDaysAgo),
     productIds.length > 0
       ? supabase
           .from("product_variants")
@@ -141,9 +163,21 @@ export default async function DashboardPage() {
       {/* Last 30 days */}
       <p className="mt-6 text-h3 text-text-primary">Last 30 days</p>
       <div className="mt-2 grid grid-cols-3 gap-2">
-        <StatCard label="Directions" value={directionEvents ?? 0} />
-        <StatCard label="WhatsApp" value={whatsappEvents ?? 0} />
-        <StatCard label="Calls" value={callEvents ?? 0} />
+        <StatCard
+          label="Directions"
+          value={directionEvents ?? 0}
+          weekValue={directionEvents7d ?? 0}
+        />
+        <StatCard
+          label="WhatsApp"
+          value={whatsappEvents ?? 0}
+          weekValue={whatsappEvents7d ?? 0}
+        />
+        <StatCard
+          label="Calls"
+          value={callEvents ?? 0}
+          weekValue={callEvents7d ?? 0}
+        />
       </div>
 
       {/* Inventory */}
@@ -189,13 +223,24 @@ export default async function DashboardPage() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({
+  label,
+  value,
+  weekValue,
+}: {
+  label: string;
+  value: number;
+  weekValue?: number;
+}) {
   return (
     <div className="rounded-[10px] bg-shopper-light p-3">
       <p className="text-[10px] uppercase tracking-wide text-text-tertiary">
         {label}
       </p>
       <p className="mt-1 text-h2 text-shopper-dark">{value}</p>
+      {weekValue !== undefined && (
+        <p className="text-[10px] text-shopper-dark">+{weekValue} this week</p>
+      )}
     </div>
   );
 }
