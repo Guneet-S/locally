@@ -4,6 +4,69 @@ All notable changes to this project are documented here.
 
 ---
 
+## [2.1.0] — 2026-05-30
+
+### Phase 2 — Shopper P0 (app layer catches up to v2 schema)
+
+The v2 database migration shipped in 2.0.0; this release rebuilds the entire
+Shopper (store-owner) flow to match. All v1 column references — `is_available`,
+`category` text, `sizes[]`, `colors[]`, the `product_category` enum, and the
+old `wishlists` table — are gone. The Shoppee side was updated in lock-step
+so the public catalogue keeps working with the new schema.
+
+- **6-step product creation wizard** (`/shopper/inventory/new`) — Replaces
+  the single-form "Add product" page. Step 1 picks the gender → category →
+  product type from the new taxonomy lookup tables. Step 2 captures name,
+  description, price, and draft/active status. Step 3 has fabric, GSM, fit,
+  pattern, sleeve, neck, occasion, season, and wash care. Step 4 is a
+  preset + custom multi-select for colors and sizes. Step 5 auto-builds the
+  inventory matrix (rows = colors, cols = sizes) with per-cell qty inputs
+  and per-row SKUs (auto-pattern `{STORE_ABBREV}-{TYPE_ABBREV}-{COLOR}-{SIZE}`
+  when blank). Step 6 uploads up to 4 photos with up/down reorder and a
+  "Primary" badge on the first. Publish writes a `products` row and N
+  `product_variants` rows in one action; Save as Draft only requires
+  taxonomy + name. Browser back triggers an unsaved-changes warning.
+- **Store profile expansion** (`/shopper/setup` and `/shopper/settings`) —
+  The setup form now captures logo, cover image, description (500 char
+  counter), per-day business hours (open/close times with a Closed toggle),
+  and WhatsApp number. A new `SettingsForm` lets the shopkeeper edit any
+  of those fields after creation, with a live completeness score progress
+  bar at the top (re-queried after each save — the score is trigger-computed
+  in the database). Both forms compress images client-side to under 2MB
+  with `browser-image-compression` (JPG/PNG only) and upload to the new
+  `store-logos` and `store-covers` Supabase Storage buckets with
+  owner-scoped RLS policies.
+- **Inventory list rewrite** (`/shopper/inventory`) — Server-side paginated
+  (20/page) with search (`?q=`), gender/category/stock filters as URL
+  params, and Newest/Low-stock-first sort. Each row shows the product type
+  label (joined from `product_types`), a stock badge in the v2 spec colors
+  (In stock #16A34A, Low stock #F59E0B, Out of stock #DC2626) with the
+  total qty computed from the joined `product_variants` rows, and edit /
+  delete actions.
+- **Shopkeeper dashboard rewrite** (`/shopper/dashboard`) — Three 3-up
+  card rows: Today's store views / product views / wishlist saves; last 30
+  days direction opens / WhatsApp clicks / calls (read from
+  `contact_events`); inventory summary of active / low stock / out of
+  stock products. All queries run in parallel via `Promise.all`. The
+  Quick Actions row has Add product, Share store (Web Share API with
+  clipboard fallback), and View store.
+- **Shoppee catalogue catches up** — `/store/[id]` filters by `status =
+  'active'` instead of `is_available = true` and reads the product type
+  label via a join. `/product/[id]` derives the displayed sizes and colors
+  from in-stock `product_variants` rows (qty > 0) and shows the
+  description. Wishlist actions, profile counts, home-feed wishlist join,
+  and store-detail wishlist all use `store_wishlists`.
+- **Storage buckets added** — `store-logos` and `store-covers` with the
+  same owner-scoped insert/update + public read policies as the existing
+  `store-banners` / `product-photos` buckets. Created via the Management
+  API; included in `SCHEMA.sql` snapshots going forward.
+
+`npx tsc --noEmit` is clean and `next build` succeeds across all 23
+routes. No new runtime dependencies were added (the wizard relies on the
+already-installed `browser-image-compression`).
+
+---
+
 ## [2.0.0] — 2026-05-30
 
 ### Breaking — schema overhaul (Phase 1)
