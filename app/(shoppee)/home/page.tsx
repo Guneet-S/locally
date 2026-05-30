@@ -4,7 +4,8 @@ import Link from "next/link";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
 import HomeSearch from "@/components/shoppee/HomeSearch";
 import WishlistButton from "@/components/shoppee/WishlistButton";
-import { MapPin, Star } from "lucide-react";
+import StoreCard from "@/components/shoppee/StoreCard";
+import { MapPin } from "lucide-react";
 
 const CATEGORIES = [
   "Men",
@@ -19,6 +20,7 @@ const CATEGORIES = [
 type NearbyStore = {
   id: string;
   name: string;
+  cover_image_url: string | null;
   banner_url: string | null;
   address: string;
   categories: string[];
@@ -128,72 +130,28 @@ export default async function HomePage({
           </div>
         ) : (
           stores.map((store) => (
-            <Link key={store.id} href={`/store/${store.id}`} className="block">
-              <div className="relative overflow-hidden rounded-lg border border-shoppee-border bg-white shadow-sm">
-                {store.banner_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={store.banner_url}
-                    alt={store.name}
-                    className="h-36 w-full object-cover"
-                  />
-                ) : (
-                  <div className="h-36 w-full bg-shoppee-muted" />
-                )}
-                <div className="absolute right-2 top-2">
-                  <WishlistButton
-                    storeId={store.id}
-                    initialWishlisted={wishlistSet.has(store.id)}
-                  />
-                </div>
-                <div className="p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="font-serif text-h3 text-shoppee-textPrimary">
-                      {store.name}
-                    </p>
-                    <span
-                      className={`shrink-0 rounded-full px-2 py-0.5 text-meta ${
-                        store.is_open_now
-                          ? "bg-shoppee-muted text-shoppee-primary"
-                          : "bg-shoppee-muted text-shoppee-textSecondary"
-                      }`}
-                    >
-                      {store.is_open_now ? "Open" : "Closed"}
-                    </span>
-                  </div>
-                  <div className="mt-1 flex items-center gap-1">
-                    <MapPin
-                      size={10}
-                      strokeWidth={1.5}
-                      className="text-shoppee-textSecondary"
-                    />
-                    <p className="line-clamp-1 text-meta text-shoppee-textSecondary">
-                      {store.address}
-                    </p>
-                  </div>
-                  <div className="mt-1.5 flex items-center justify-between">
-                    <div className="flex items-center gap-0.5">
-                      <Star
-                        size={11}
-                        strokeWidth={1.5}
-                        fill="currentColor"
-                        className="text-shoppee-primary"
-                      />
-                      <span className="text-meta text-shoppee-textSecondary">
-                        {store.avg_rating > 0
-                          ? store.avg_rating.toFixed(1)
-                          : "New"}
-                      </span>
-                    </div>
-                    <span className="text-meta text-shoppee-textSecondary">
-                      {store.distance_m < 1000
-                        ? `${Math.round(store.distance_m)}m`
-                        : `${(store.distance_m / 1000).toFixed(1)}km`}
-                    </span>
-                  </div>
-                </div>
+            <div key={store.id} className="relative">
+              <StoreCard
+                store={{
+                  id: store.id,
+                  name: store.name,
+                  cover_image_url: store.cover_image_url,
+                  banner_url: store.banner_url,
+                  categories: store.categories,
+                  is_open_now: store.is_open_now,
+                  distance_m: store.distance_m,
+                }}
+                wishlisted={wishlistSet.has(store.id)}
+                showWishlist
+              />
+              {/* Wishlist heart overlay on card image */}
+              <div className="absolute right-2 top-2">
+                <WishlistButton
+                  storeId={store.id}
+                  initialWishlisted={wishlistSet.has(store.id)}
+                />
               </div>
-            </Link>
+            </div>
           ))
         )}
       </div>

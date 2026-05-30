@@ -4,6 +4,54 @@ All notable changes to this project are documented here.
 
 ---
 
+## [2.2.0] — 2026-05-31
+
+### Phase 3 — Shoppee P1 (store CTAs, shared cards, wishlist tabs, profile more section)
+
+Six additive features building on the clean v2 base. All new components are shared
+and reusable across the catalogue, wishlist, and home feed.
+
+- **WhatsApp + Directions + Call CTA row** — The store detail page now shows a
+  three-button row (WhatsApp, Directions, Call) replacing the old two-button row.
+  WhatsApp only renders when the store has a `whatsapp_number` set. Directions
+  links use a proper Google Maps deep link (`/maps/dir/?api=1&destination=lat,lng`)
+  with coordinates parsed from the PostGIS GeoJSON response — previously the link
+  used a text address query. Every button tap logs a row to `contact_events` so
+  shopkeepers can see which contact method customers use most in their dashboard.
+- **StoreCard shared component** — A reusable card (`components/shoppee/StoreCard`)
+  replaces the inline store card markup in the home feed and explore page. Shows
+  cover image (falls back to banner, then a warm-ivory placeholder with the store
+  initial), up to 2 category pills, distance, open/closed badge with a colored dot,
+  and product count when available.
+- **ProductCard shared component** — A reusable product card (`components/shoppee/ProductCard`)
+  replaces the inline product grid on the store detail page. Renders a lazy-loaded
+  square image, name, GSM badge, fabric label, formatted price (or "Price on visit"
+  when null), gender + type line, and a color-coded stock badge (In Stock / Low
+  Stock / Out of Stock) derived from variant quantities. A small client-side
+  `ProductWishlistHeart` sub-component handles the heart toggle without making the
+  whole card a client component.
+- **Product wishlist** — Users can now save individual products. The heart icon on
+  each ProductCard inserts or removes a row from `product_wishlist`. The server action
+  (`toggleProductWishlist`) lives alongside the existing store wishlist action in
+  `app/(shoppee)/wishlist/actions.ts`.
+- **Wishlist page — 2 tabs** — The wishlist page is rebuilt as a server component
+  that fetches both saved stores and saved products, then passes them to a
+  `WishlistTabs` client component backed by shadcn Tabs. Tab triggers show counts
+  (e.g. "Stores (3)" / "Products (7)"). Each tab has a distinct empty state with a
+  call-to-action. The active tab can be set via `?tab=stores` or `?tab=products` URL
+  param, so other pages can deep-link directly to the products tab.
+- **Profile page — More section** — The placeholder "About Locally" row in the More
+  section is replaced by a `ProfileMoreSection` client component with 6 rows:
+  Saved Products (with count badge, links to wishlist products tab), Saved Stores
+  (count badge, links to wishlist stores tab), Recently Viewed Stores, Change City
+  (opens a shadcn Dialog with Patiala / Chandigarh / Ludhiana / Amritsar / Auto-detect;
+  sets the `shoppee_location` cookie via a server action), Notification Preferences
+  (links to a new `/profile/notifications` stub page), and Share App (Web Share API
+  with clipboard fallback). The Saved Items stat on the profile card now reflects
+  both saved stores and saved products combined.
+
+---
+
 ## [2.1.0] — 2026-05-30
 
 ### Phase 2 — Shopper P0 (app layer catches up to v2 schema)

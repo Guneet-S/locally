@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentProfile, createClient } from "@/lib/supabase/server";
-import { ChevronRight } from "lucide-react";
+import ProfileMoreSection from "@/components/shoppee/ProfileMoreSection";
 
 type RecentStore = {
   id: string;
@@ -18,28 +18,36 @@ export default async function ProfilePage() {
 
   async function signOut() {
     "use server";
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    const { createClient: makeClient } = await import(
+      "@/lib/supabase/server"
+    );
+    const client = makeClient();
+    await client.auth.signOut();
     redirect("/role");
   }
 
   const initial = profile.full_name?.charAt(0).toUpperCase() ?? "?";
 
-  // Stats: wishlist count + distinct stores discovered
-  const [{ count: wishlistCount }, { data: viewedRows }] = await Promise.all([
+  // Stats
+  const [
+    { count: savedStoresCount },
+    { count: savedProductsCount },
+    { data: viewedRows },
+  ] = await Promise.all([
     supabase
       .from("store_wishlists")
       .select("*", { count: "exact", head: true })
       .eq("shoppee_id", profile.id),
     supabase
-      .from("store_views")
-      .select("store_id")
-      .eq("viewer_id", profile.id),
+      .from("product_wishlist")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", profile.id),
+    supabase.from("store_views").select("store_id").eq("viewer_id", profile.id),
   ]);
 
   const storesDiscovered = new Set(viewedRows?.map((v) => v.store_id)).size;
 
-  // Recent activity: last 3 unique stores viewed (deduped in JS)
+  // Recent activity: last 3 unique stores viewed
   const { data: recentViewRows } = await supabase
     .from("store_views")
     .select("store_id")
@@ -107,7 +115,7 @@ export default async function ProfilePage() {
       <div className="mt-4 flex gap-3">
         <div className="flex flex-1 flex-col items-center rounded-lg border border-shoppee-border bg-white p-3 shadow-sm">
           <span className="text-2xl font-bold text-shoppee-primary">
-            {wishlistCount ?? 0}
+            {(savedStoresCount ?? 0) + (savedProductsCount ?? 0)}
           </span>
           <span className="mt-0.5 text-sm text-shoppee-textSecondary">
             Saved Items
@@ -164,17 +172,15 @@ export default async function ProfilePage() {
         )}
       </div>
 
-      {/* More */}
+      {/* More section */}
       <div className="mt-6">
         <p className="mb-2 text-sm font-semibold text-shoppee-textSecondary">
           More
         </p>
-        <div className="flex items-center justify-between rounded-lg border border-shoppee-border bg-white p-3 shadow-sm">
-          <span className="text-sm font-medium text-shoppee-textPrimary">
-            About Locally
-          </span>
-          <ChevronRight size={16} className="text-shoppee-textSecondary" />
-        </div>
+        <ProfileMoreSection
+          savedProductsCount={savedProductsCount ?? 0}
+          savedStoresCount={savedStoresCount ?? 0}
+        />
       </div>
 
       {/* Logout */}

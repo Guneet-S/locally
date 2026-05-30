@@ -1,15 +1,20 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
-import { MapPin, Clock, Phone } from "lucide-react";
+import { MapPin, Clock } from "lucide-react";
 import WishlistButton from "@/components/shoppee/WishlistButton";
+import StoreCTARow from "@/components/shoppee/StoreCTARow";
+import ProductCard from "@/components/shoppee/ProductCard";
 
 type Product = {
   id: string;
   name: string;
-  price: number;
+  price: number | null;
   photo_urls: string[];
+  fabric: string | null;
+  gsm: number | null;
   product_types: { name: string } | null;
+  genders: { name: string } | null;
+  product_variants: { qty: number }[];
 };
 
 export default async function StorePage({
@@ -24,7 +29,9 @@ export default async function StorePage({
     supabase.from("stores").select("*").eq("id", params.id).maybeSingle(),
     supabase
       .from("products")
-      .select("id, name, price, photo_urls, product_types(name)")
+      .select(
+        "id, name, price, photo_urls, fabric, gsm, product_types(name), genders(name), product_variants(qty)"
+      )
       .eq("store_id", params.id)
       .eq("status", "active")
       .order("created_at", { ascending: false })
@@ -39,17 +46,35 @@ export default async function StorePage({
     .insert({ store_id: params.id, viewer_id: profile?.id ?? null });
 
   let wishlisted = false;
+  let productWishlistSet = new Set<string>();
+
   if (profile) {
-    const { data } = await supabase
-      .from("store_wishlists")
-      .select("store_id")
-      .eq("shoppee_id", profile.id)
-      .eq("store_id", params.id)
-      .maybeSingle();
-    wishlisted = !!data;
+    const [{ data: storeWishlist }, { data: productWishlistRows }] =
+      await Promise.all([
+        supabase
+          .from("store_wishlists")
+          .select("store_id")
+          .eq("shoppee_id", profile.id)
+          .eq("store_id", params.id)
+          .maybeSingle(),
+        supabase
+          .from("product_wishlist")
+          .select("product_id")
+          .eq("user_id", profile.id),
+      ]);
+    wishlisted = !!storeWishlist;
+    productWishlistSet = new Set(
+      productWishlistRows?.map((r) => r.product_id) ?? []
+    );
   }
 
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.address)}`;
+  // Parse GeoJSON location for coordinates
+  let lat = 0;
+  let lng = 0;
+  if (store.location) {
+    const geo = store.location as { coordinates: [number, number] };
+    [lng, lat] = geo.coordinates;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-shoppee-bg pb-20">
@@ -98,19 +123,6 @@ export default async function StorePage({
               </p>
             </div>
           )}
-          <div className="flex items-center gap-1.5">
-            <Phone
-              size={14}
-              strokeWidth={1.5}
-              className="text-shoppee-textSecondary"
-            />
-            <a
-              href={`tel:${store.contact_phone}`}
-              className="text-meta text-shoppee-primary"
-            >
-              {store.contact_phone}
-            </a>
-          </div>
         </div>
 
         {/* Category pills */}
@@ -127,23 +139,14 @@ export default async function StorePage({
           </div>
         )}
 
-        {/* CTA buttons */}
-        <div className="mt-4 flex gap-3">
-          <a
-            href={`tel:${store.contact_phone}`}
-            className="flex-1 rounded-lg bg-shoppee-primary py-3 text-center text-button text-white"
-          >
-            Call store
-          </a>
-          <a
-            href={mapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 rounded-lg border border-shoppee-primary py-3 text-center text-button text-shoppee-primary"
-          >
-            Get directions
-          </a>
-        </div>
+        {/* CTA buttons: WhatsApp + Directions + Call */}
+        <StoreCTARow
+          storeId={store.id}
+          contactPhone={store.contact_phone}
+          whatsappNumber={store.whatsapp_number ?? null}
+          lat={lat}
+          lng={lng}
+        />
       </div>
 
       {/* Products */}
@@ -158,32 +161,12 @@ export default async function StorePage({
         ) : (
           <div className="mt-3 grid grid-cols-2 gap-3">
             {products.map((product) => (
-              <Link
+              <ProductCard
                 key={product.id}
-                href={`/product/${product.id}`}
-                className="block"
-              >
-                <div className="overflow-hidden rounded-lg border border-shoppee-border bg-white shadow-sm">
-                  {product.photo_urls[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={product.photo_urls[0]}
-                      alt={product.name}
-                      className="aspect-square w-full object-cover"
-                    />
-                  ) : (
-                    <div className="aspect-square w-full bg-shoppee-muted" />
-                  )}
-                  <div className="p-2">
-                    <p className="line-clamp-1 font-serif text-h3 text-shoppee-textPrimary">
-                      {product.name}
-                    </p>
-                    <p className="mt-0.5 text-meta text-shoppee-primary">
-                      Rs. {product.price.toLocaleString("en-IN")}
-                    </p>
-                  </div>
-                </div>
-              </Link>
+                product={product}
+                wishlisted={productWishlistSet.has(product.id)}
+                userId={profile?.id ?? null}
+              />
             ))}
           </div>
         )}
