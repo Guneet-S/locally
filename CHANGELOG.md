@@ -4,6 +4,28 @@ All notable changes to this project are documented here.
 
 ---
 
+## [2.0.0] — 2026-05-30
+
+### Breaking — schema overhaul (Phase 1)
+
+Locally's catalogue model is being rebuilt to support real apparel attributes, variants, and richer store profiles. This release applies the database migration only. UI changes ship in a later phase.
+
+- **Products redesigned around real apparel attributes** — The old flat product row (single category, sizes/colors arrays, `is_available` flag) is gone. The new `products` table has separate gender/category/type references plus apparel-specific columns (fabric, GSM, fit, pattern, sleeve type, neck type, occasion, season, wash care) and a `status` field replacing `is_available`.
+- **Stock now lives on variants** — A new `product_variants` table holds the `(color, size, qty, sku)` rows per product, with a unique constraint on `(product_id, color, size)`.
+- **Taxonomy is data, not enums** — Replaced the `product_category` and `size_label` enums with three lookup tables: `genders`, `product_categories`, `product_types`. Seeded with 3 genders, 11 categories, and 30 product types covering Men, Women, and Kids apparel.
+- **Wishlist split** — The old store-level `wishlists` table was renamed to `store_wishlists`. A new `product_wishlist` table lets shoppees save individual products.
+- **Store profile enrichment** — Added six new columns to `stores`: `logo_url`, `cover_image_url`, `description`, `business_hours` (jsonb), `whatsapp_number`, `completeness_score` (0-100, auto-computed by trigger).
+- **Store completeness scoring** — New `compute_store_completeness` function + trigger rates store profiles on 10 dimensions (name 10, description 10, logo 15, cover 15, whatsapp 10, contact_phone 10, business_hours 10, location 10, is_active 5, categories 5).
+- **Analytics tables** — Added `product_views` (per-product view tracking) and `contact_events` (whatsapp/call/directions/share events, store-level).
+- **RLS on every new table** — Public read on active products/variants/taxonomy; owner-only writes on products/variants/stores; user-owned rows on `product_wishlist`; open insert + owner read on analytics tables; taxonomy is read-only from the app.
+- **PostgREST schema cache reload** — `NOTIFY pgrst, 'reload schema'` is the last statement in the migration so the API sees the new tables immediately.
+
+Migration file: `migrations/v2_schema_migration.sql`. Full schema snapshot: `SCHEMA.sql`. TypeScript types in `types/database.ts` were regenerated against the live database.
+
+No app code changed in this release. The UI still references the v1 product shape and will be updated in Phase 2.
+
+---
+
 ## [1.0.9] — 2026-05-18
 
 ### Visual Refresh

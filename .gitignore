@@ -43,3 +43,8 @@ stitch-reference/
 
 # MCP config (contains API keys — local only)
 .mcp.json
+
+.vercel
+
+# Supabase CLI local state
+supabase/
