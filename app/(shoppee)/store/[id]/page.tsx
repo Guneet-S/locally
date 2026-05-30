@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
-import { MapPin, Clock } from "lucide-react";
+import { MapPin, Clock, FolderPlus } from "lucide-react";
 import WishlistButton from "@/components/shoppee/WishlistButton";
 import StoreCTARow from "@/components/shoppee/StoreCTARow";
 import ProductCard from "@/components/shoppee/ProductCard";
@@ -17,6 +18,15 @@ type Product = {
   product_variants: { qty: number }[];
 };
 
+type CollectionRow = {
+  id: string;
+  name: string;
+  slug: string;
+  cover_image_url: string | null;
+  display_order: number;
+  collection_products: { count: number }[];
+};
+
 export default async function StorePage({
   params,
 }: {
@@ -25,18 +35,27 @@ export default async function StorePage({
   const supabase = createClient();
   const profile = await getCurrentProfile();
 
-  const [{ data: store }, { data: products }] = await Promise.all([
-    supabase.from("stores").select("*").eq("id", params.id).maybeSingle(),
-    supabase
-      .from("products")
-      .select(
-        "id, name, price, photo_urls, fabric, gsm, product_types(name), genders(name), product_variants(qty)"
-      )
-      .eq("store_id", params.id)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .returns<Product[]>(),
-  ]);
+  const [{ data: store }, { data: products }, { data: collections }] =
+    await Promise.all([
+      supabase.from("stores").select("*").eq("id", params.id).maybeSingle(),
+      supabase
+        .from("products")
+        .select(
+          "id, name, price, photo_urls, fabric, gsm, product_types(name), genders(name), product_variants(qty)"
+        )
+        .eq("store_id", params.id)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .returns<Product[]>(),
+      supabase
+        .from("collections")
+        .select(
+          "id, name, slug, cover_image_url, display_order, collection_products(count)"
+        )
+        .eq("store_id", params.id)
+        .order("display_order", { ascending: true })
+        .returns<CollectionRow[]>(),
+    ]);
 
   if (!store) notFound();
 
@@ -143,6 +162,55 @@ export default async function StorePage({
           lng={lng}
         />
       </div>
+
+      {/* Collections */}
+      {collections && collections.length > 0 && (
+        <div className="mt-6">
+          <div className="px-4">
+            <h2 className="font-serif text-h2 text-shoppee-textPrimary">
+              Collections
+            </h2>
+          </div>
+          <div
+            className="mt-3 flex gap-3 overflow-x-auto px-4"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {collections.map((c) => {
+              const count = c.collection_products?.[0]?.count ?? 0;
+              return (
+                <Link
+                  key={c.id}
+                  href={`/store/${params.id}/collection/${c.slug}`}
+                  className="block w-[120px] shrink-0"
+                >
+                  {c.cover_image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={c.cover_image_url}
+                      alt={c.name}
+                      className="h-[120px] w-[120px] rounded-[10px] object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-[120px] w-[120px] items-center justify-center rounded-[10px] bg-shoppee-muted">
+                      <FolderPlus
+                        size={24}
+                        strokeWidth={1.5}
+                        className="text-shoppee-primary"
+                      />
+                    </div>
+                  )}
+                  <p className="mt-1.5 line-clamp-1 font-serif text-meta text-shoppee-textPrimary">
+                    {c.name}
+                  </p>
+                  <p className="text-[10px] text-shoppee-textSecondary">
+                    {count} {count === 1 ? "product" : "products"}
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Products */}
       <div className="mt-6 px-4">
