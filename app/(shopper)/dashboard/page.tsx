@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Plus, Store } from "lucide-react";
+import { Plus, Store, Folder } from "lucide-react";
 import DashboardShareButton from "@/components/shopper/DashboardShareButton";
 
 function getTodayStartIST(): string {
@@ -168,6 +168,13 @@ export default async function DashboardPage() {
           storeName={store.name}
           storeUrl={publicStoreUrl}
         />
+        <Link
+          href="/collections"
+          className="flex items-center justify-center gap-2 rounded-[10px] border border-shopper-primary py-3 text-button text-shopper-primary"
+        >
+          <Folder size={16} strokeWidth={1.5} />
+          Manage collections
+        </Link>
         <Link
           href={publicStoreUrl}
           target="_blank"
