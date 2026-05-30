@@ -1,13 +1,17 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import imageCompression from "browser-image-compression";
-import { MapPin, Upload } from "lucide-react";
+import { MapPin, Upload, Image as ImageIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { storeSchema, type StoreInput } from "@/lib/validations/store";
+import {
+  storeSchema,
+  type StoreInput,
+  type BusinessHoursDay,
+} from "@/lib/validations/store";
 import { createStoreAction } from "@/app/(shopper)/setup/actions";
 
 const STORE_CATEGORIES = [
@@ -20,32 +24,101 @@ const STORE_CATEGORIES = [
   "Western",
 ];
 
+const DAYS: BusinessHoursDay["day"][] = [
+  "mon",
+  "tue",
+  "wed",
+  "thu",
+  "fri",
+  "sat",
+  "sun",
+];
+
+const DAY_LABEL: Record<BusinessHoursDay["day"], string> = {
+  mon: "Mon",
+  tue: "Tue",
+  wed: "Wed",
+  thu: "Thu",
+  fri: "Fri",
+  sat: "Sat",
+  sun: "Sun",
+};
+
+const DEFAULT_HOURS: BusinessHoursDay[] = DAYS.map((day) => ({
+  day,
+  open: "10:00",
+  close: "21:00",
+  closed: day === "sun" ? true : false,
+}));
+
+const MAX_DESC = 500;
+
+async function uploadImage(
+  file: File,
+  bucket: string,
+  ownerId: string
+): Promise<string> {
+  const compressed = await imageCompression(file, {
+    maxSizeMB: 2,
+    maxWidthOrHeight: 1920,
+    useWebWorker: true,
+  });
+  const supabase = createClient();
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${ownerId}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage
+    .from(bucket)
+    .upload(path, compressed, { contentType: compressed.type });
+  if (error) throw error;
+  return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+}
+
 export default function SetupForm() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null
   );
   const [locError, setLocError] = useState<string | null>(null);
-  const [bannerFile, setBannerFile] = useState<File | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [hours, setHours] = useState<BusinessHoursDay[]>(DEFAULT_HOURS);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
+    control,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<StoreInput>({
     resolver: zodResolver(storeSchema),
-    defaultValues: { categories: [] },
+    defaultValues: {
+      categories: [],
+      business_hours: DEFAULT_HOURS,
+      description: "",
+    },
   });
 
-  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const description = watch("description") ?? "";
+
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setFile: (f: File | null) => void,
+    setPreview: (s: string | null) => void
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setBannerPreview(URL.createObjectURL(file));
-    setBannerFile(file);
+    if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+      toast.error("Use JPG or PNG only");
+      return;
+    }
+    setFile(file);
+    setPreview(URL.createObjectURL(file));
   };
 
   const handleGetLocation = () => {
@@ -81,72 +154,113 @@ export default function SetupForm() {
     });
   };
 
-  const onSubmit = async (data: StoreInput) => {
-    let bannerUrl: string | undefined;
-
-    if (bannerFile) {
-      try {
-        const compressed = await imageCompression(bannerFile, {
-          maxSizeMB: 2,
-          maxWidthOrHeight: 1920,
-          useWebWorker: true,
-        });
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        const ext = bannerFile.name.split(".").pop() ?? "jpg";
-        const path = `${user!.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("store-banners")
-          .upload(path, compressed, { contentType: compressed.type });
-        if (uploadError) throw uploadError;
-        bannerUrl = supabase.storage
-          .from("store-banners")
-          .getPublicUrl(path).data.publicUrl;
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Photo upload failed");
-        return;
-      }
-    }
-
-    const result = await createStoreAction({ ...data, banner_url: bannerUrl });
-    if (result?.error) toast.error(result.error);
+  const updateHourDay = (
+    index: number,
+    patch: Partial<BusinessHoursDay>
+  ) => {
+    const next = hours.map((h, i) => (i === index ? { ...h, ...patch } : h));
+    setHours(next);
+    setValue("business_hours", next);
   };
 
+  const onSubmit = async (data: StoreInput) => {
+    if (!location) {
+      toast.error("Please share your location");
+      return;
+    }
+    try {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Not signed in");
+        return;
+      }
+
+      let logoUrl: string | undefined;
+      let coverUrl: string | undefined;
+      if (logoFile) logoUrl = await uploadImage(logoFile, "store-logos", user.id);
+      if (coverFile)
+        coverUrl = await uploadImage(coverFile, "store-covers", user.id);
+
+      const result = await createStoreAction({
+        ...data,
+        logo_url: logoUrl,
+        cover_image_url: coverUrl,
+      });
+      if (result?.error) toast.error(result.error);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save store");
+    }
+  };
+
+  // Track form values to keep hidden Controllers happy
   return (
-    <div className="flex min-h-screen flex-col px-4 pb-12 pt-10">
+    <div className="mx-auto flex min-h-screen max-w-[480px] flex-col px-4 pb-12 pt-10">
       <h1 className="text-h1 text-text-primary">List your shop</h1>
       <p className="mt-1 text-body text-text-secondary">Set up your store profile</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-6 flex flex-col gap-5">
-        {/* Banner */}
+        {/* Cover image */}
         <div>
+          <p className="mb-2 text-meta text-text-secondary">Cover image</p>
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="flex w-full flex-col items-center justify-center gap-2 rounded-[10px] border-[0.5px] border-border-subtle bg-surface-muted py-8 text-meta text-text-secondary"
+            onClick={() => coverInputRef.current?.click()}
+            className="flex w-full flex-col items-center justify-center gap-2 rounded-[10px] border-[0.5px] border-border-subtle bg-surface-muted py-6 text-meta text-text-secondary"
           >
-            {bannerPreview ? (
+            {coverPreview ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={bannerPreview}
-                alt="Banner preview"
+                src={coverPreview}
+                alt="Cover preview"
                 className="h-28 w-full rounded-[8px] object-cover"
               />
             ) : (
               <>
                 <Upload size={20} strokeWidth={1.5} />
-                <span>Upload banner (optional)</span>
+                <span>Upload cover (JPG/PNG)</span>
               </>
             )}
           </button>
           <input
-            ref={fileInputRef}
+            ref={coverInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png"
             className="hidden"
-            onChange={handleBannerChange}
+            onChange={(e) => handleImageChange(e, setCoverFile, setCoverPreview)}
+          />
+        </div>
+
+        {/* Logo */}
+        <div>
+          <p className="mb-2 text-meta text-text-secondary">Logo</p>
+          <button
+            type="button"
+            onClick={() => logoInputRef.current?.click()}
+            className="flex w-full items-center gap-3 rounded-[10px] border-[0.5px] border-border-subtle bg-surface-muted p-3 text-meta text-text-secondary"
+          >
+            {logoPreview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoPreview}
+                alt="Logo preview"
+                className="h-14 w-14 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-surface">
+                <ImageIcon size={20} strokeWidth={1.5} />
+              </div>
+            )}
+            <span>Upload logo</span>
+          </button>
+          <input
+            ref={logoInputRef}
+            type="file"
+            accept="image/jpeg,image/png"
+            className="hidden"
+            onChange={(e) => handleImageChange(e, setLogoFile, setLogoPreview)}
           />
         </div>
 
@@ -159,6 +273,25 @@ export default function SetupForm() {
           />
           {errors.name && (
             <p className="mt-1 text-meta text-danger">{errors.name.message}</p>
+          )}
+        </div>
+
+        {/* Description */}
+        <div>
+          <textarea
+            {...register("description")}
+            placeholder="Description (optional)"
+            rows={3}
+            maxLength={MAX_DESC}
+            className="w-full rounded-[9px] border-[0.5px] border-border-subtle bg-surface-muted px-3 py-2.5 text-meta placeholder:text-text-tertiary"
+          />
+          <p className="mt-1 text-right text-meta text-text-tertiary">
+            {description.length}/{MAX_DESC}
+          </p>
+          {errors.description && (
+            <p className="mt-1 text-meta text-danger">
+              {errors.description.message}
+            </p>
           )}
         </div>
 
@@ -175,27 +308,7 @@ export default function SetupForm() {
           )}
         </div>
 
-        {/* Hours */}
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <label className="text-meta text-text-secondary">Opening time</label>
-            <input
-              {...register("opening_time")}
-              type="time"
-              className="mt-1 w-full rounded-[9px] border-[0.5px] border-border-subtle bg-surface-muted px-3 py-2.5 text-meta"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="text-meta text-text-secondary">Closing time</label>
-            <input
-              {...register("closing_time")}
-              type="time"
-              className="mt-1 w-full rounded-[9px] border-[0.5px] border-border-subtle bg-surface-muted px-3 py-2.5 text-meta"
-            />
-          </div>
-        </div>
-
-        {/* Phone */}
+        {/* Phone & WhatsApp */}
         <div>
           <input
             {...register("contact_phone")}
@@ -208,6 +321,69 @@ export default function SetupForm() {
               {errors.contact_phone.message}
             </p>
           )}
+        </div>
+        <div>
+          <input
+            {...register("whatsapp_number")}
+            type="tel"
+            placeholder="WhatsApp number (+91 optional)"
+            className="w-full rounded-[9px] border-[0.5px] border-border-subtle bg-surface-muted px-3 py-2.5 text-meta placeholder:text-text-tertiary"
+          />
+        </div>
+
+        {/* Business hours */}
+        <div>
+          <p className="mb-2 text-meta text-text-secondary">Business hours</p>
+          <div className="flex flex-col gap-1.5">
+            {hours.map((h, i) => (
+              <div
+                key={h.day}
+                className="flex items-center gap-2 rounded-[8px] bg-surface-muted px-2 py-1.5"
+              >
+                <span className="w-9 text-meta text-text-secondary">
+                  {DAY_LABEL[h.day]}
+                </span>
+                {h.closed ? (
+                  <span className="flex-1 text-meta text-text-tertiary">
+                    Closed
+                  </span>
+                ) : (
+                  <>
+                    <input
+                      type="time"
+                      value={h.open ?? ""}
+                      onChange={(e) =>
+                        updateHourDay(i, { open: e.target.value })
+                      }
+                      className="flex-1 rounded border-[0.5px] border-border-subtle bg-surface px-2 py-1 text-meta"
+                    />
+                    <input
+                      type="time"
+                      value={h.close ?? ""}
+                      onChange={(e) =>
+                        updateHourDay(i, { close: e.target.value })
+                      }
+                      className="flex-1 rounded border-[0.5px] border-border-subtle bg-surface px-2 py-1 text-meta"
+                    />
+                  </>
+                )}
+                <label className="flex items-center gap-1 text-meta text-text-tertiary">
+                  <input
+                    type="checkbox"
+                    checked={h.closed}
+                    onChange={(e) =>
+                      updateHourDay(i, {
+                        closed: e.target.checked,
+                        open: e.target.checked ? null : "10:00",
+                        close: e.target.checked ? null : "21:00",
+                      })
+                    }
+                  />
+                  Closed
+                </label>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Categories */}
@@ -255,6 +431,10 @@ export default function SetupForm() {
             <p className="mt-1 text-meta text-danger">{locError}</p>
           )}
         </div>
+
+        {/* Hidden controllers so RHF tracks lat/lng/categories/business_hours */}
+        <Controller name="lat" control={control} render={() => <input type="hidden" />} />
+        <Controller name="lng" control={control} render={() => <input type="hidden" />} />
 
         <button
           type="submit"

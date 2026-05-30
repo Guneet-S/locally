@@ -4,6 +4,17 @@ import { createClient } from "@/lib/supabase/server";
 import { MapPin } from "lucide-react";
 import PhotoCarousel from "@/components/shoppee/PhotoCarousel";
 
+type ProductRow = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  photo_urls: string[];
+  store_id: string;
+  product_types: { name: string } | null;
+  product_variants: { color: string; size: string; qty: number }[];
+};
+
 export default async function ProductPage({
   params,
 }: {
@@ -13,9 +24,11 @@ export default async function ProductPage({
 
   const { data: product } = await supabase
     .from("products")
-    .select("*")
+    .select(
+      "id, name, description, price, photo_urls, store_id, product_types(name), product_variants(color, size, qty)"
+    )
     .eq("id", params.id)
-    .maybeSingle();
+    .maybeSingle<ProductRow>();
 
   if (!product) notFound();
 
@@ -25,30 +38,39 @@ export default async function ProductPage({
     .eq("id", product.store_id)
     .maybeSingle();
 
+  // Derive unique sizes/colors from variants (only show in-stock ones)
+  const inStock = product.product_variants.filter((v) => v.qty > 0);
+  const sizes = Array.from(new Set(inStock.map((v) => v.size)));
+  const colors = Array.from(new Set(inStock.map((v) => v.color)));
+  const typeLabel = product.product_types?.name ?? "Apparel";
+
   return (
     <div className="flex min-h-screen flex-col bg-shoppee-bg pb-20">
-      <PhotoCarousel
-        photos={product.photo_urls as string[]}
-        alt={product.name}
-      />
+      <PhotoCarousel photos={product.photo_urls} alt={product.name} />
 
       <div className="px-4 pt-4">
         <span className="rounded-full bg-shoppee-muted px-2.5 py-1 text-meta text-shoppee-primary">
-          {product.category}
+          {typeLabel}
         </span>
         <h1 className="mt-2 font-serif text-h1 text-shoppee-textPrimary">
           {product.name}
         </h1>
         <p className="mt-1 text-h2 text-shoppee-primary">
-          Rs. {(product.price as number).toLocaleString("en-IN")}
+          Rs. {product.price.toLocaleString("en-IN")}
         </p>
 
+        {product.description && (
+          <p className="mt-3 text-body text-shoppee-textSecondary">
+            {product.description}
+          </p>
+        )}
+
         {/* Sizes */}
-        {(product.sizes as string[]).length > 0 && (
+        {sizes.length > 0 && (
           <div className="mt-4">
             <p className="mb-2 text-meta text-shoppee-textSecondary">Sizes</p>
             <div className="flex flex-wrap gap-2">
-              {(product.sizes as string[]).map((size) => (
+              {sizes.map((size) => (
                 <span
                   key={size}
                   className="rounded-lg border border-shoppee-border px-3 py-1 text-meta text-shoppee-textSecondary"
@@ -61,17 +83,17 @@ export default async function ProductPage({
         )}
 
         {/* Colors */}
-        {(product.colors as string[]).length > 0 && (
+        {colors.length > 0 && (
           <div className="mt-4">
             <p className="mb-2 text-meta text-shoppee-textSecondary">Colors</p>
             <div className="flex flex-wrap gap-2">
-              {(product.colors as string[]).map((color) => (
+              {colors.map((color) => (
                 <span
                   key={color}
-                  className="h-7 w-7 rounded-full border border-shoppee-border"
-                  style={{ backgroundColor: color }}
-                  title={color}
-                />
+                  className="rounded-lg border border-shoppee-border px-3 py-1 text-meta text-shoppee-textSecondary"
+                >
+                  {color}
+                </span>
               ))}
             </div>
           </div>

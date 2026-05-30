@@ -1,11 +1,12 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import ExploreSearch from "@/components/shoppee/ExploreSearch";
-import { MapPin, Search } from "lucide-react";
+import StoreCard from "@/components/shoppee/StoreCard";
+import { Search } from "lucide-react";
 
 type StoreResult = {
   id: string;
   name: string;
+  cover_image_url: string | null;
   banner_url: string | null;
   address: string;
   categories: string[];
@@ -27,7 +28,7 @@ export default async function ExplorePage({
     const [{ data: byName }, { data: matchingProducts }] = await Promise.all([
       supabase
         .from("stores")
-        .select("id, name, banner_url, address, categories")
+        .select("id, name, cover_image_url, banner_url, address, categories")
         .ilike("name", pattern)
         .eq("is_active", true)
         .limit(20)
@@ -47,14 +48,13 @@ export default async function ExplorePage({
     if (productStoreIds.length > 0) {
       const { data } = await supabase
         .from("stores")
-        .select("id, name, banner_url, address, categories")
+        .select("id, name, cover_image_url, banner_url, address, categories")
         .in("id", productStoreIds)
         .eq("is_active", true)
         .returns<StoreResult[]>();
       byProduct = data ?? [];
     }
 
-    // byName first, then product-matched stores not already included
     const seen = new Set<string>();
     const results: StoreResult[] = [];
     for (const s of [...(byName ?? []), ...byProduct]) {
@@ -94,47 +94,7 @@ export default async function ExplorePage({
       {stores.length > 0 && (
         <div className="mt-5 flex flex-col gap-3">
           {stores.map((store) => (
-            <Link key={store.id} href={`/store/${store.id}`} className="block">
-              <div className="flex gap-3 rounded-lg border border-shoppee-border bg-white p-3 shadow-sm">
-                {store.banner_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={store.banner_url}
-                    alt={store.name}
-                    className="h-16 w-16 shrink-0 rounded-lg object-cover"
-                  />
-                ) : (
-                  <div className="h-16 w-16 shrink-0 rounded-lg bg-shoppee-muted" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="font-serif text-h3 text-shoppee-textPrimary">
-                    {store.name}
-                  </p>
-                  <div className="mt-0.5 flex items-center gap-1">
-                    <MapPin
-                      size={10}
-                      strokeWidth={1.5}
-                      className="shrink-0 text-shoppee-textSecondary"
-                    />
-                    <p className="line-clamp-1 text-meta text-shoppee-textSecondary">
-                      {store.address}
-                    </p>
-                  </div>
-                  {store.categories.length > 0 && (
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {store.categories.slice(0, 3).map((cat) => (
-                        <span
-                          key={cat}
-                          className="rounded-full bg-shoppee-muted px-2 py-0.5 text-meta text-shoppee-primary"
-                        >
-                          {cat}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Link>
+            <StoreCard key={store.id} store={store} />
           ))}
         </div>
       )}

@@ -1,39 +1,54 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient, getCurrentProfile } from "@/lib/supabase/server";
-import { MapPin, Heart } from "lucide-react";
+import WishlistTabs from "@/components/shoppee/WishlistTabs";
 
-type Store = {
+type WishlistedStore = {
   id: string;
   name: string;
+  cover_image_url: string | null;
   banner_url: string | null;
-  address: string;
   categories: string[];
 };
 
-export default async function WishlistPage() {
+type WishlistedProduct = {
+  id: string;
+  name: string;
+  price: number | null;
+  photo_urls: string[];
+  fabric: string | null;
+  gsm: number | null;
+  product_types: { name: string } | null;
+  genders: { name: string } | null;
+  product_variants: { qty: number }[];
+};
+
+export default async function WishlistPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login?role=shoppee");
 
   const supabase = createClient();
 
-  const { data: wishlistRows } = await supabase
-    .from("wishlists")
+  // Fetch store wishlist
+  const { data: storeWishlistRows } = await supabase
+    .from("store_wishlists")
     .select("store_id")
     .eq("shoppee_id", profile.id)
     .order("created_at", { ascending: false });
 
-  const storeIds = wishlistRows?.map((w) => w.store_id) ?? [];
+  const storeIds = storeWishlistRows?.map((w) => w.store_id) ?? [];
 
-  const stores: Store[] = [];
+  const stores: WishlistedStore[] = [];
   if (storeIds.length > 0) {
     const { data } = await supabase
       .from("stores")
-      .select("id, name, banner_url, address, categories")
+      .select("id, name, cover_image_url, banner_url, categories")
       .in("id", storeIds)
-      .returns<Store[]>();
+      .returns<WishlistedStore[]>();
     if (data) {
-      // Preserve wishlist recency order
       const storeMap = new Map(data.map((s) => [s.id, s]));
       for (const id of storeIds) {
         const store = storeMap.get(id);
@@ -42,78 +57,44 @@ export default async function WishlistPage() {
     }
   }
 
+  // Fetch product wishlist
+  const { data: productWishlistRows } = await supabase
+    .from("product_wishlist")
+    .select("product_id")
+    .eq("user_id", profile.id)
+    .order("created_at", { ascending: false });
+
+  const productIds = productWishlistRows?.map((w) => w.product_id) ?? [];
+
+  const products: WishlistedProduct[] = [];
+  if (productIds.length > 0) {
+    const { data } = await supabase
+      .from("products")
+      .select(
+        "id, name, price, photo_urls, fabric, gsm, product_types(name), genders(name), product_variants(qty)"
+      )
+      .in("id", productIds)
+      .returns<WishlistedProduct[]>();
+    if (data) {
+      const productMap = new Map(data.map((p) => [p.id, p]));
+      for (const id of productIds) {
+        const product = productMap.get(id);
+        if (product) products.push(product);
+      }
+    }
+  }
+
   return (
     <div className="min-h-screen bg-shoppee-bg px-4 pb-20 pt-12">
       <h1 className="font-serif text-h1 text-shoppee-textPrimary">Wishlist</h1>
-
-      {stores.length === 0 ? (
-        <div className="mt-16 flex flex-col items-center text-center">
-          <Heart
-            size={40}
-            strokeWidth={1.5}
-            className="text-shoppee-muted"
-            fill="currentColor"
-          />
-          <p className="mt-3 font-serif text-h3 text-shoppee-textPrimary">
-            Nothing saved yet
-          </p>
-          <p className="mt-1 text-body text-shoppee-textSecondary">
-            Tap the heart on any store to save it here.
-          </p>
-          <Link
-            href="/home"
-            className="mt-6 rounded-lg bg-shoppee-primary px-6 py-3 text-button text-white"
-          >
-            Explore shops
-          </Link>
-        </div>
-      ) : (
-        <div className="mt-5 flex flex-col gap-3">
-          {stores.map((store) => (
-            <Link key={store.id} href={`/store/${store.id}`} className="block">
-              <div className="flex gap-3 rounded-lg border border-shoppee-border bg-white p-3 shadow-sm">
-                {store.banner_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={store.banner_url}
-                    alt={store.name}
-                    className="h-16 w-16 shrink-0 rounded-lg object-cover"
-                  />
-                ) : (
-                  <div className="h-16 w-16 shrink-0 rounded-lg bg-shoppee-muted" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="font-serif text-h3 text-shoppee-textPrimary">
-                    {store.name}
-                  </p>
-                  <div className="mt-0.5 flex items-center gap-1">
-                    <MapPin
-                      size={10}
-                      strokeWidth={1.5}
-                      className="shrink-0 text-shoppee-textSecondary"
-                    />
-                    <p className="line-clamp-1 text-meta text-shoppee-textSecondary">
-                      {store.address}
-                    </p>
-                  </div>
-                  {store.categories.length > 0 && (
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {store.categories.slice(0, 3).map((cat) => (
-                        <span
-                          key={cat}
-                          className="rounded-full bg-shoppee-muted px-2 py-0.5 text-meta text-shoppee-primary"
-                        >
-                          {cat}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+      <WishlistTabs
+        storeCount={stores.length}
+        productCount={products.length}
+        stores={stores}
+        products={products}
+        userId={profile.id}
+        defaultTab={searchParams.tab}
+      />
     </div>
   );
 }
