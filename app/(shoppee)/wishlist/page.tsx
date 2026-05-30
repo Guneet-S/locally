@@ -18,7 +18,7 @@ export default async function WishlistPage() {
   const supabase = createClient();
 
   const { data: wishlistRows } = await supabase
-    .from("wishlists")
+    .from("store_wishlists")
     .select("store_id")
     .eq("shoppee_id", profile.id)
     .order("created_at", { ascending: false });

@@ -9,7 +9,7 @@ type Product = {
   name: string;
   price: number;
   photo_urls: string[];
-  category: string;
+  product_types: { name: string } | null;
 };
 
 export default async function StorePage({
@@ -24,9 +24,9 @@ export default async function StorePage({
     supabase.from("stores").select("*").eq("id", params.id).maybeSingle(),
     supabase
       .from("products")
-      .select("id, name, price, photo_urls, category")
+      .select("id, name, price, photo_urls, product_types(name)")
       .eq("store_id", params.id)
-      .eq("is_available", true)
+      .eq("status", "active")
       .order("created_at", { ascending: false })
       .returns<Product[]>(),
   ]);
@@ -41,7 +41,7 @@ export default async function StorePage({
   let wishlisted = false;
   if (profile) {
     const { data } = await supabase
-      .from("wishlists")
+      .from("store_wishlists")
       .select("store_id")
       .eq("shoppee_id", profile.id)
       .eq("store_id", params.id)

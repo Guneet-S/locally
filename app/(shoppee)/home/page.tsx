@@ -47,14 +47,14 @@ export default async function HomePage({
   if (!profile) redirect("/login?role=shoppee");
 
   const supabase = createClient();
-  const categoryFilter = searchParams.category ?? null;
+  const categoryFilter = searchParams.category;
 
   const { data: stores } = await supabase
     .rpc("nearby_stores", {
       lat,
       lng,
       radius_m: 5000,
-      category_filter: categoryFilter,
+      ...(categoryFilter ? { category_filter: categoryFilter } : {}),
     })
     .returns<NearbyStore[]>();
 
@@ -62,11 +62,11 @@ export default async function HomePage({
   const { data: wishlistRows } =
     storeIds.length > 0
       ? await supabase
-          .from("wishlists")
+          .from("store_wishlists")
           .select("store_id")
           .eq("shoppee_id", profile.id)
           .in("store_id", storeIds)
-      : { data: [] };
+      : { data: [] as { store_id: string }[] };
 
   const wishlistSet = new Set(wishlistRows?.map((w) => w.store_id) ?? []);
 

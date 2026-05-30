@@ -28,7 +28,7 @@ export default async function ProfilePage() {
   // Stats: wishlist count + distinct stores discovered
   const [{ count: wishlistCount }, { data: viewedRows }] = await Promise.all([
     supabase
-      .from("wishlists")
+      .from("store_wishlists")
       .select("*", { count: "exact", head: true })
       .eq("shoppee_id", profile.id),
     supabase
@@ -44,7 +44,7 @@ export default async function ProfilePage() {
     .from("store_views")
     .select("store_id")
     .eq("viewer_id", profile.id)
-    .order("created_at", { ascending: false })
+    .order("viewed_at", { ascending: false })
     .limit(50);
 
   const seenIds = new Set<string>();
