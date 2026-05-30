@@ -4,6 +4,74 @@ All notable changes to this project are documented here.
 
 ---
 
+## [2.3.0] — 2026-05-31
+
+### Phase 4 — Growth + Instagram-feel home (collections, search, discovery rails)
+
+A multi-rail discovery home, a unified search experience, and a full collections
+system on both the merchant and customer sides. Plus growth analytics: 7-day
+trending RPC, recent-updates RPC, and "this week" sub-figures on the merchant
+dashboard.
+
+- **Schema additions** — Two new tables: `collections` (store-owned themed groups
+  with name, slug, cover image, description, display_order, is_featured) and
+  `collection_products` (junction with position for manual ordering). RLS allows
+  public read on both; writes restricted to the owning store (`stores.owner_id =
+  auth.uid()`). New `idx_products_created_at_desc` index speeds up the New
+  Arrivals query. Two new RPCs: `trending_stores(limit_n)` ranks active stores
+  by a 7-day weighted score (views x1 + wishlist adds x3 + contact opens x2),
+  and `recently_updated_stores(limit_n)` returns stores with a product added
+  in the last 14 days, ordered by most recent. A new `collection-covers` Storage
+  bucket holds the cover images (public read, authenticated upload up to 2MB).
+- **Instagram-feel home feed** — `app/(shoppee)/home/page.tsx` is rebuilt as a
+  Server Component with five horizontal scroll rails: "New Arrivals near you"
+  (12 most-recent products from nearby stores in the last 7 days, with store
+  name + distance overlay), "Trending shops" (top 6 by the trending score),
+  "Just dropped" (top 6 from recently_updated_stores), "Shop by category"
+  (chips Men/Women/Kids/Ethnic/Casual/Western linking to /explore?gender=...),
+  and "Browse all nearby" (the existing vertical StoreCard list, limit 20).
+  Empty rails are skipped entirely. Every "See all" link points to /search.
+- **Collections — Shopkeeper side** — Three new pages under `/collections`. The
+  list page renders a 2-column grid of collection cards (cover image, name,
+  product count) with an empty state. The `/collections/new` page is a single
+  form with name, auto-slugified slug, description, optional cover upload (via
+  browser-image-compression, then Supabase storage), plus a checkbox picker
+  for the store's active products. The `/collections/[id]` page reuses the
+  form for editing and adds a `CollectionProductManager` client component that
+  handles add/remove products, Up/Down reorder via two server-action calls
+  that swap `position` fields, and a delete-with-confirm modal. The dashboard
+  Quick Actions section now has a "Manage collections" button.
+- **Collections — Shoppee side** — The store detail page renders a horizontal
+  Collections rail (cover image 120x120 + name + product count) between the
+  CTA row and Products grid. Tapping a collection opens
+  `/store/[id]/collection/[slug]`, which loads the products via the junction
+  table ordered by `position` and shows them as a 2-column ProductCard grid.
+- **Unified /search page** — New `/search` route as a Server Component. Two
+  tabs (Products | Stores) implemented as Link-based navigation (preserves SSR).
+  Products tab: searches `products.name` and `products.fabric` (OR ilike), with
+  filter chips for Gender (from `genders` lookup table) and GSM range
+  (100-180 / 180-240 / 240-300 / 300+). Stores tab: searches `stores.name` and
+  `stores.categories` (OR contains), with a city text filter. URL params drive
+  every filter so chips are deep-linkable. The `HomeSearch` and `ExploreSearch`
+  components are rewired to route here instead of `/explore`.
+- **Explore GSM chips** — The `/explore` page now shows a "Filter by GSM" chip
+  row beneath the search input. Each chip is a Link to `/search?tab=products&gsm=RANGE`
+  so users coming from explore land in the product search with the filter
+  pre-applied. A "Clear all" link points to the bare product search.
+- **Dashboard contact analytics — week sub-figures** — The `Last 30 days` row
+  on `/dashboard` (Directions, WhatsApp, Calls) now shows a secondary "+N this
+  week" line under each number, sourced from three additional 7-day count
+  queries against `contact_events`. The `StatCard` component gained an optional
+  `weekValue` prop; existing callers (Today, Inventory) render unchanged.
+- **Test store seed** — 8 placeholder products on Test Store Patiala
+  (id `f2808101-1df0-44dd-b61e-c09613e0d0c9`) using Pollinations.ai for cover
+  art: 4 women's kurtis (Cotton 160 GSM / Silk 120 / Linen 200 / Embroidered
+  Cotton 160), 2 men's t-shirts (Cotton 180 / Polyester 140), 2 oversized
+  hoodies (Polyester fleece 280 / Cotton Blend 260). Each product ships with
+  one variant (color + size + qty=10) so the stock badge renders sensibly.
+
+---
+
 ## [2.2.0] — 2026-05-31
 
 ### Phase 3 — Shoppee P1 (store CTAs, shared cards, wishlist tabs, profile more section)
