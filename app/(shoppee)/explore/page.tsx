@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import ExploreSearch from "@/components/shoppee/ExploreSearch";
 import StoreCard from "@/components/shoppee/StoreCard";
@@ -11,6 +12,13 @@ type StoreResult = {
   address: string;
   categories: string[];
 };
+
+const GSM_CHIPS = [
+  { key: "100-180", label: "100-180 GSM" },
+  { key: "180-240", label: "180-240 GSM" },
+  { key: "240-300", label: "240-300 GSM" },
+  { key: "300+", label: "300+ GSM" },
+];
 
 export default async function ExplorePage({
   searchParams,
@@ -71,6 +79,31 @@ export default async function ExplorePage({
       <h1 className="font-serif text-h1 text-shoppee-textPrimary">Explore</h1>
       <div className="mt-4">
         <ExploreSearch initialQ={q} />
+      </div>
+
+      {/* GSM filter chips - link to /search?tab=products with gsm filter */}
+      <div className="mt-4">
+        <p className="text-meta text-shoppee-textSecondary">Filter by GSM</p>
+        <div
+          className="mt-2 flex gap-2 overflow-x-auto"
+          style={{ scrollbarWidth: "none" }}
+        >
+          {GSM_CHIPS.map((chip) => (
+            <Link
+              key={chip.key}
+              href={`/search?tab=products&gsm=${encodeURIComponent(chip.key)}`}
+              className="shrink-0 rounded-full border border-shoppee-border bg-shoppee-muted px-3 py-1 text-meta text-shoppee-textSecondary"
+            >
+              {chip.label}
+            </Link>
+          ))}
+          <Link
+            href="/search?tab=products"
+            className="shrink-0 rounded-full border border-shoppee-border bg-transparent px-3 py-1 text-meta text-shoppee-primary"
+          >
+            Clear all
+          </Link>
+        </div>
       </div>
 
       {q && stores.length === 0 && (
