@@ -508,6 +508,8 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          lat: number | null
+          lng: number | null
           location: unknown
           logo_url: string | null
           name: string
@@ -530,6 +532,8 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          lat?: number | null
+          lng?: number | null
           location: unknown
           logo_url?: string | null
           name: string
@@ -552,6 +556,8 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          lat?: number | null
+          lng?: number | null
           location?: unknown
           logo_url?: string | null
           name?: string

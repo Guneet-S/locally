@@ -68,13 +68,8 @@ export default async function StorePage({
     );
   }
 
-  // Parse GeoJSON location for coordinates
-  let lat = 0;
-  let lng = 0;
-  if (store.location) {
-    const geo = store.location as { coordinates: [number, number] };
-    [lng, lat] = geo.coordinates;
-  }
+  const lat = store.lat ?? 0;
+  const lng = store.lng ?? 0;
 
   return (
     <div className="flex min-h-screen flex-col bg-shoppee-bg pb-20">
